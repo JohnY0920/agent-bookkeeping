@@ -59,3 +59,18 @@ async def write_db(table: str, data: dict) -> dict:
     async with pool.acquire() as conn:
         row = await conn.fetchrow(query, *values)
         return dict(row)
+
+
+async def update_db(table: str, data: dict, where: dict) -> dict | None:
+    """UPDATE rows matching where clause and return the first updated row."""
+    pool = await get_pool()
+    set_parts = [f'"{k}" = ${i + 1}' for i, k in enumerate(data.keys())]
+    where_parts = [f'"{k}" = ${len(data) + i + 1}' for i, k in enumerate(where.keys())]
+    values = list(data.values()) + list(where.values())
+    query = (
+        f'UPDATE "{table}" SET {", ".join(set_parts)}'
+        f' WHERE {" AND ".join(where_parts)} RETURNING *'
+    )
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(query, *values)
+        return dict(row) if row else None
