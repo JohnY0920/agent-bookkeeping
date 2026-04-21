@@ -1,0 +1,15 @@
+fastapi==0.115.*
+uvicorn[standard]==0.34.*
+celery[redis]==5.4.*
+anthropic==0.52.*
+httpx==0.28.*
+asyncpg==0.30.*
+pgvector==0.3.*
+pydantic==2.10.*
+pydantic-settings==2.6.*
+python-multipart==0.0.18
+google-cloud-storage==2.19.*
+sendgrid==6.11.*
+mistralai==1.5.*
+pandas==2.2.*
+openpyxl==3.1.*
