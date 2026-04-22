@@ -1,21 +1,21 @@
 import asyncio
 import base64
+import anthropic
 from app.config import settings
 
-_mistral_client = None
+_client = None
 
 
-def _get_mistral_client():
-    global _mistral_client
-    if _mistral_client is None:
-        from mistralai import Mistral
-        _mistral_client = Mistral(api_key=settings.MISTRAL_API_KEY)
-    return _mistral_client
+def _get_client() -> anthropic.AsyncAnthropic:
+    global _client
+    if _client is None:
+        _client = anthropic.AsyncAnthropic(api_key=settings.CLAUDE_API_KEY)
+    return _client
 
 
-async def mistral_ocr(file_path: str) -> dict:
+async def extract_document(file_path: str) -> dict:
     """
-    Extract text and layout from a document using Mistral OCR.
+    Extract text and structure from a document using Claude Sonnet vision.
     Accepts local file paths (PDF, PNG, JPEG).
     Returns extracted text per page plus raw markdown.
     """
@@ -23,32 +23,44 @@ async def mistral_ocr(file_path: str) -> dict:
         raw = f.read()
 
     ext = file_path.lower().rsplit(".", 1)[-1]
-    mime_types = {"pdf": "application/pdf", "png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg"}
-    mime = mime_types.get(ext, "application/pdf")
-    b64 = base64.b64encode(raw).decode()
-    data_url = f"data:{mime};base64,{b64}"
+    mime_map = {"pdf": "application/pdf", "png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg"}
+    mime = mime_map.get(ext, "application/pdf")
+    b64 = base64.standard_b64encode(raw).decode()
 
-    client = _get_mistral_client()
+    if mime == "application/pdf":
+        content_block = {
+            "type": "document",
+            "source": {"type": "base64", "media_type": mime, "data": b64},
+        }
+    else:
+        content_block = {
+            "type": "image",
+            "source": {"type": "base64", "media_type": mime, "data": b64},
+        }
 
-    def _call_ocr():
-        return client.ocr.process(
-            model="mistral-ocr-latest",
-            document={"type": "document_url", "document_url": data_url},
-            include_image_base64=False,
-        )
+    client = _get_client()
+    response = await client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=4096,
+        system=(
+            "You are a document extraction assistant. Extract all text and structure from the document. "
+            "Preserve tables, labels, amounts, and dates exactly as they appear. "
+            "Format your response as clean markdown."
+        ),
+        messages=[{
+            "role": "user",
+            "content": [
+                content_block,
+                {"type": "text", "text": "Extract all text and structure from this document. Preserve all numbers, dates, and labels exactly."},
+            ],
+        }],
+    )
 
-    response = await asyncio.to_thread(_call_ocr)
-
-    pages = []
-    full_text = []
-    for page in response.pages:
-        pages.append({"page": page.index, "text": page.markdown})
-        full_text.append(page.markdown)
-
+    extracted = response.content[0].text
     return {
         "file_path": file_path,
-        "page_count": len(pages),
-        "pages": pages,
-        "full_text": "\n\n".join(full_text),
-        "model": "mistral-ocr-latest",
+        "page_count": 1,
+        "pages": [{"page": 0, "text": extracted}],
+        "full_text": extracted,
+        "model": "claude-sonnet-4-6",
     }

@@ -1,10 +1,9 @@
-import os
 from app.agents.base import BaseAgent
 
 _TOOL_DEFS = [
     {
-        "name": "mistral_ocr",
-        "description": "Extract text and layout from a document file (PDF, image) using Mistral OCR.",
+        "name": "extract_document",
+        "description": "Extract text and structure from a document (PDF, image) using Claude Sonnet vision.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -71,12 +70,12 @@ _TOOL_DEFS = [
     },
     {
         "name": "upload_file",
-        "description": "Upload a local file to Cloud Storage.",
+        "description": "Upload a local file to S3.",
         "input_schema": {
             "type": "object",
             "properties": {
                 "local_path": {"type": "string"},
-                "destination_path": {"type": "string", "description": "Path within the GCS bucket"},
+                "destination_path": {"type": "string", "description": "Path within the S3 bucket"},
             },
             "required": ["local_path", "destination_path"],
         },
@@ -135,15 +134,9 @@ _TOOL_DEFS = [
     },
 ]
 
-_PROMPT_PATH = os.path.join(os.path.dirname(__file__), "../../prompts/document_agent.md")
-
 
 class DocumentAgent(BaseAgent):
     agent_type = "document"
 
     def _register_tools(self) -> list[dict]:
         return _TOOL_DEFS
-
-    def _load_prompt(self) -> str:
-        with open(_PROMPT_PATH) as f:
-            return f.read()

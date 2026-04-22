@@ -1,4 +1,3 @@
-import os
 from app.agents.base import BaseAgent
 
 _TOOL_DEFS = [
@@ -89,15 +88,8 @@ _TOOL_DEFS = [
     },
 ]
 
-_PROMPT_PATH = os.path.join(os.path.dirname(__file__), "../../prompts/planner.md")
-
-
 class PlannerAgent(BaseAgent):
     agent_type = "planner"
 
     def _register_tools(self) -> list[dict]:
         return _TOOL_DEFS
-
-    def _load_prompt(self) -> str:
-        with open(_PROMPT_PATH) as f:
-            return f.read()
