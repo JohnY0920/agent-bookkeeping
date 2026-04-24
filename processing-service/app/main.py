@@ -11,6 +11,8 @@ from app.api.review import router as review_router
 from app.api.gl import router as gl_router
 from app.api.workpapers import router as workpapers_router
 from app.api.plan import router as plan_router
+from app.api.transactions import router as transactions_router
+from app.api.xero_oauth import router as xero_router
 from app.tools.db import get_pool, close_pool
 
 
@@ -52,3 +54,5 @@ app.include_router(review_router, prefix="/api", tags=["review"])
 app.include_router(gl_router, prefix="/api", tags=["gl"])
 app.include_router(workpapers_router, prefix="/api", tags=["workpapers"])
 app.include_router(plan_router, prefix="/api", tags=["plan"])
+app.include_router(transactions_router, prefix="/api", tags=["transactions"])
+app.include_router(xero_router, prefix="/api", tags=["xero"])

@@ -26,9 +26,9 @@ from app.tools.ocr import extract_document
 from app.tools.lesson import get_lessons, save_lesson
 from app.tools.dispatch import dispatch_agent
 
-# Phase 2 (uncomment as implemented)
-# from app.tools.xero import pull_transactions, pull_chart_of_accounts, pull_bank_balances
-# from app.tools.knowledge import search_knowledge_base
+# Phase 2
+from app.tools.xero import pull_transactions, pull_chart_of_accounts, pull_bank_balances
+from app.tools.knowledge import search_knowledge_base
 
 # Phase 3 (uncomment as implemented)
 # from app.tools.email import send_email
@@ -69,4 +69,10 @@ TOOL_REGISTRY: dict = {
     "save_lesson": save_lesson,
     # Agent dispatch (planner only)
     "dispatch_agent": dispatch_agent,
+    # Xero integration
+    "pull_transactions": pull_transactions,
+    "pull_chart_of_accounts": pull_chart_of_accounts,
+    "pull_bank_balances": pull_bank_balances,
+    # CRA knowledge base
+    "search_knowledge_base": search_knowledge_base,
 }

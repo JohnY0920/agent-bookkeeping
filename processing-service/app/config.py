@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     EMAIL_FROM: str = "noreply@architectledger.com"
     XERO_CLIENT_ID: str = ""
     XERO_CLIENT_SECRET: str = ""
+    # Fernet key for encrypting OAuth tokens at rest (base64-url-encoded 32 bytes)
+    TOKEN_ENCRYPTION_KEY: str = ""
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 

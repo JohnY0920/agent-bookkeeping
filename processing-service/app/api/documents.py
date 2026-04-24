@@ -46,6 +46,7 @@ async def upload_document(
         "file_name": file.filename,
         "storage_path": upload_result["storage_path"],
         "status": "UPLOADED",
+        "uploaded_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc),
     })
 
     # Dispatch document agent via Celery
