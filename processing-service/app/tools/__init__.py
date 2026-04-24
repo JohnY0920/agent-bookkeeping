@@ -14,7 +14,7 @@ from app.tools.calculations import (
     calculate_sbd,
 )
 from app.tools.gl_writer import write_gl_entry
-from app.tools.db import query_db, write_db
+from app.tools.db import query_db, write_db, update_db
 
 # Phase 1
 from app.tools.storage import upload_file, download_file, get_signed_url, delete_file
@@ -30,8 +30,8 @@ from app.tools.dispatch import dispatch_agent
 from app.tools.xero import pull_transactions, pull_chart_of_accounts, pull_bank_balances
 from app.tools.knowledge import search_knowledge_base
 
-# Phase 3 (uncomment as implemented)
-# from app.tools.email import send_email
+# Phase 3
+from app.tools.email import send_email
 
 TOOL_REGISTRY: dict = {
     # Calculations (deterministic — never use LLM for these)
@@ -46,6 +46,7 @@ TOOL_REGISTRY: dict = {
     # DB helpers
     "query_db": query_db,
     "write_db": write_db,
+    "update_db": update_db,
     # Storage (S3)
     "upload_file": upload_file,
     "download_file": download_file,
@@ -75,4 +76,6 @@ TOOL_REGISTRY: dict = {
     "pull_bank_balances": pull_bank_balances,
     # CRA knowledge base
     "search_knowledge_base": search_knowledge_base,
+    # Email (comms agent)
+    "send_email": send_email,
 }
