@@ -14,6 +14,8 @@ MODEL_MAP: dict[str, str] = {
     "tax": "claude-sonnet-4-6",
     "qc": "claude-sonnet-4-6",
     "planner": "claude-sonnet-4-6",
+    # Haiku: fast assembly (financial_stmt data is already in GL, just format + aggregate)
+    "filing": "claude-haiku-4-5-20251001",
 }
 
 
