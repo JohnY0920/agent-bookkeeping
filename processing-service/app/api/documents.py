@@ -57,6 +57,7 @@ async def upload_document(
         firm_id=firm_id,
         task_description=f"Process uploaded document: {file.filename}",
         context={"document_id": str(row["id"]), "storage_path": upload_result["storage_path"]},
+        client_id="",
     )
 
     return {"id": str(row["id"]), "storage_path": upload_result["storage_path"], "status": "UPLOADED"}

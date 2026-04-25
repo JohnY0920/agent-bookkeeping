@@ -58,6 +58,11 @@ Required env vars (see `.env.example`): `DATABASE_URL`, `REDIS_URL`, `CLAUDE_API
 
 MinIO local dev: set `AWS_ENDPOINT_URL=http://localhost:9000`, `AWS_ACCESS_KEY_ID=devaccess`, `AWS_SECRET_ACCESS_KEY=devsecret1`.
 
+```bash
+# Seed CRA/ITA knowledge base (run once after first DB init)
+cd processing-service && PYTHONPATH=. python scripts/seed_knowledge_base.py
+```
+
 ## Critical Rules
 
 - **Never generate financial numbers with the LLM.** All calculations (GST, CCA, amortization, tax payable) must go through tools in `app/tools/calculations.py`. The agent decides which tool to call; the tool produces the number.

@@ -74,6 +74,7 @@ async def sync_transactions(payload: SyncRequest) -> dict:
     run_agent.delay(
         agent_type="transaction",
         engagement_id=payload.engagement_id,
+        client_id=payload.client_id,
         firm_id=payload.firm_id,
         task_description=f"Pull and categorize Xero transactions from {payload.from_date} to {payload.to_date}",
         context={

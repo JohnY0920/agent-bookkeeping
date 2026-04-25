@@ -10,9 +10,9 @@ async def dispatch_agent(
     context: dict | None = None,
 ) -> dict:
     """Enqueue a specialized agent task. Returns immediately with task_id."""
-    from workers.celery_tasks import dispatch_agent as _celery_dispatch
+    from workers.celery_tasks import run_agent
 
-    task = _celery_dispatch.delay(
+    task = run_agent.delay(
         agent_type=agent_type,
         engagement_id=engagement_id,
         client_id=client_id,

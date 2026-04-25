@@ -18,17 +18,20 @@ celery_app.conf.update(
 )
 
 
-@celery_app.task(name="workers.celery_tasks.dispatch_agent", bind=True, max_retries=3)
-def dispatch_agent(
+@celery_app.task(name="workers.celery_tasks.run_agent", bind=True, max_retries=3)
+def run_agent(
     self,
     agent_type: str,
     engagement_id: str,
-    client_id: str,
     firm_id: str,
     task_description: str,
+    client_id: str = "",
     context: dict | None = None,
 ) -> dict:
-    """Dispatch a specialized agent. Runs synchronously inside a Celery worker."""
+    """
+    Run a specialized agent synchronously inside a Celery worker.
+    Uses asyncio.run() to create a fresh event loop per task (safe for Celery workers).
+    """
     from app.agents import get_agent_class
 
     async def _run():
@@ -41,8 +44,9 @@ def dispatch_agent(
         return await agent.run(task_description=task_description, context=context)
 
     try:
-        return asyncio.get_event_loop().run_until_complete(_run())
-    except NotImplementedError:
-        return {"status": "not_implemented", "agent_type": agent_type}
+        return asyncio.run(_run())
+    except ValueError as exc:
+        # Unknown agent type — don't retry
+        return {"status": "error", "detail": str(exc)}
     except Exception as exc:
         raise self.retry(exc=exc, countdown=2 ** self.request.retries)
