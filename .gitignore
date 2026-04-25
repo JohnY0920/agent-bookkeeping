@@ -41,8 +41,12 @@ node_modules/
 .next/
 .turbo/
 
-# GCP / Cloud
-*.json
-!package.json
-!tsconfig*.json
+# Credentials / secrets
 service-account-key.json
+*-key.json
+*credentials*.json
+
+# Node
+package.json
+package-lock.json
+tsconfig*.json

@@ -1,0 +1,51 @@
+{
+  "name": "Xero Daily Transaction Sync",
+  "description": "Every morning at 6am ET, sync Xero transactions for all active engagements in PROCESSING mode.",
+  "nodes": [
+    {
+      "id": "trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 11 * * 1-5" }] }
+      }
+    },
+    {
+      "id": "fetch_engagements",
+      "name": "Fetch PROCESSING engagements",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.PROCESSING_SERVICE_URL }}/api/engagements?mode=PROCESSING",
+        "headers": { "X-Internal-Token": "={{ $env.INTERNAL_API_TOKEN }}" }
+      }
+    },
+    {
+      "id": "loop_engagements",
+      "name": "For each engagement",
+      "type": "n8n-nodes-base.splitInBatches",
+      "parameters": { "batchSize": 1 }
+    },
+    {
+      "id": "trigger_sync",
+      "name": "POST /api/transactions/sync",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.PROCESSING_SERVICE_URL }}/api/transactions/sync",
+        "body": {
+          "client_id": "={{ $json.client_id }}",
+          "firm_id": "={{ $json.firm_id }}",
+          "engagement_id": "={{ $json.id }}",
+          "from_date": "={{ $today.minus({days: 7}).toFormat('yyyy-MM-dd') }}",
+          "to_date": "={{ $today.toFormat('yyyy-MM-dd') }}"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "trigger": [["fetch_engagements"]],
+    "fetch_engagements": [["loop_engagements"]],
+    "loop_engagements": [["trigger_sync"]]
+  }
+}

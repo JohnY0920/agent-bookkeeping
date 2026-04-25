@@ -1,0 +1,51 @@
+{
+  "name": "Checklist Reminder",
+  "description": "Every Monday at 9am ET, find COLLECTION-mode engagements with incomplete required items and dispatch comms_agent to send a reminder — but only if no reminder was sent in the last 7 days.",
+  "nodes": [
+    {
+      "id": "trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 14 * * 1" }] }
+      }
+    },
+    {
+      "id": "fetch_collection",
+      "name": "Fetch COLLECTION engagements",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.PROCESSING_SERVICE_URL }}/api/engagements?mode=COLLECTION",
+        "headers": { "X-Internal-Token": "={{ $env.INTERNAL_API_TOKEN }}" }
+      }
+    },
+    {
+      "id": "loop",
+      "name": "For each engagement",
+      "type": "n8n-nodes-base.splitInBatches",
+      "parameters": { "batchSize": 1 }
+    },
+    {
+      "id": "send_reminder_event",
+      "name": "POST timer.fired event",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.PROCESSING_SERVICE_URL }}/webhooks/events",
+        "body": {
+          "event_type": "timer.fired",
+          "firm_id": "={{ $json.firm_id }}",
+          "engagement_id": "={{ $json.id }}",
+          "client_id": "={{ $json.client_id }}",
+          "payload": { "trigger": "weekly_checklist_reminder" }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "trigger": [["fetch_collection"]],
+    "fetch_collection": [["loop"]],
+    "loop": [["send_reminder_event"]]
+  }
+}

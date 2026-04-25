@@ -1,0 +1,51 @@
+{
+  "name": "Service Health Check",
+  "description": "Every 5 minutes, ping the FastAPI health endpoint and alert on failure.",
+  "nodes": [
+    {
+      "id": "trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "parameters": {
+        "rule": { "interval": [{ "field": "minutes", "minutesInterval": 5 }] }
+      }
+    },
+    {
+      "id": "health_check",
+      "name": "GET /health",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.PROCESSING_SERVICE_URL }}/health",
+        "timeout": 10000,
+        "options": { "allowUnauthorizedCerts": false }
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "check_status",
+      "name": "Check response",
+      "type": "n8n-nodes-base.if",
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.status }}", "operation": "equal", "value2": "ok" }]
+        }
+      }
+    },
+    {
+      "id": "alert",
+      "name": "Send alert email",
+      "type": "n8n-nodes-base.sendEmail",
+      "parameters": {
+        "toEmail": "={{ $env.ALERT_EMAIL }}",
+        "subject": "ALERT: Processing service health check failed",
+        "text": "The processing service health check failed at {{ $now.toISO() }}. Check CloudWatch logs."
+      }
+    }
+  ],
+  "connections": {
+    "trigger": [["health_check"]],
+    "health_check": [["check_status"]],
+    "check_status": { "false": [["alert"]] }
+  }
+}
